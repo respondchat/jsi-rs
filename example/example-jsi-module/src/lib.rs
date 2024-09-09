@@ -1,9 +1,13 @@
 use jsi::{
-    host_object, FromObject, FromValue, IntoValue, JsiFn, JsiObject, JsiString, JsiValue, PropName, RuntimeHandle
+    host_object, FromObject, FromValue, IntoValue, JsiFn, JsiObject, JsiString, JsiValue, PropName,
+    RuntimeHandle,
 };
 
 #[cfg(target_os = "android")]
 mod android;
+
+#[cfg(target_os = "ios")]
+mod ios;
 
 pub fn init(rt: *mut jsi::sys::Runtime, call_invoker: cxx::SharedPtr<jsi::sys::CallInvoker>) {
     let (mut rt, _) = jsi::init(rt, call_invoker);
@@ -35,14 +39,26 @@ pub fn init(rt: *mut jsi::sys::Runtime, call_invoker: cxx::SharedPtr<jsi::sys::C
     let host_object = ExampleHostObject;
     let host_object = host_object.into_value(&mut rt);
 
-    rt.global().set(PropName::new("ExampleGlobal", &mut rt), &host_object, &mut rt);
+    rt.global().set(
+        PropName::new("ExampleGlobal", &mut rt),
+        &host_object,
+        &mut rt,
+    );
 
     let global_str = JsiString::new("hallo", &mut rt);
     let global_str = global_str.into_value(&mut rt);
-    rt.global().set(PropName::new("ExampleGlobal2", &mut rt), &global_str, &mut rt);
+    rt.global().set(
+        PropName::new("ExampleGlobal2", &mut rt),
+        &global_str,
+        &mut rt,
+    );
 
     let global_num = JsiValue::new_number(3.200);
-    rt.global().set(PropName::new("ExampleGlobal3", &mut rt), &global_num, &mut rt);
+    rt.global().set(
+        PropName::new("ExampleGlobal3", &mut rt),
+        &global_num,
+        &mut rt,
+    );
 }
 
 struct ExampleHostObject;
