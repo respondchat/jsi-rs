@@ -1,0 +1,9 @@
+[submodule "vendor/react-native"]
+	path = vendor/react-native
+	url = https://github.com/facebook/react-native
+[submodule "vendor/fbjni"]
+	path = vendor/fbjni
+	url = https://github.com/facebookincubator/fbjni.git
+[submodule "vendor/hermes"]
+	path = vendor/hermes
+	url = https://github.com/facebook/hermes.git
