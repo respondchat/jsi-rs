@@ -96,6 +96,7 @@ struct HostObjectSetter {
 struct HostObjectMethod {
     name: String,
     method: ImplItemFn,
+	mutable: bool,
 }
 
 struct HostObjectInclude {
@@ -240,6 +241,12 @@ impl Parse for HostObjectImpl {
                                 _ => false,
                             };
 
+							let receiver_mutable = if let Some(FnArg::Receiver(r)) = inputs.first() {
+								r.mutability.is_some()
+							} else {
+								false
+							};
+
                             let output_valid = match &it.sig.output {
                                 syn::ReturnType::Default => false,
                                 syn::ReturnType::Type(_, _) => true,
@@ -253,6 +260,7 @@ impl Parse for HostObjectImpl {
                             methods.push(HostObjectMethod {
                                 name,
                                 method: it.clone(),
+								mutable: receiver_mutable,
                             })
                         }
                         HostObjectHelper::Include => {
@@ -358,6 +366,12 @@ impl Parse for HostObjectImpl {
                 .unzip();
 
             let arg_count = arg_names.len();
+
+			let getter_call = if method.mutable {
+				quote! { this.get_inner_mut::<Self>() }
+			} else {
+				quote! { this.get_inner::<Self>() }
+			};
 
             let retval = if method.method.sig.asyncness.is_some() {
                 let trace = if cfg!(feature = "host-object-trace") {
@@ -473,7 +487,7 @@ impl Parse for HostObjectImpl {
                 };
 
                 quote_spanned! {method_span=>
-                    let this = anyhow::Context::context(this.get_inner::<Self>(), "this is not bound correctly")?;
+		            let this = anyhow::Context::context(#getter_call, "this is not bound correctly")?;
                     #trace
                     Ok(::jsi::IntoValue::into_value(this.#method_name(rt, #(#arg_names),*)?, rt))
                 }
